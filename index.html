@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Chat</title>
+    <link rel="icon" href="../b.ico" type="image/icon type">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../jquery-3.5.1.js"></script>
+    <script src="../vue.js"></script>
+  </head>
+
+
+  <body>
+    <div id="app">
+      <div id="users">
+          <h1>Online Slimes</h1>
+        <ul>
+          <li>{{username}} (You)</li>
+          <li v-for="user in otherUsers">
+            {{ user.name }} 
+          </li>
+        </ul>
+      </div>
+      <div id = "messages">
+          <ul id = "messagelist">
+            <li v-for="message in messages" v-bind:class="usernameMatchesMessage(message.user.username)">
+              Sent at {{message.time}} by <span v-bind:style="{ color: message.user.color }">{{message.user.username}}</span> <br> {{ message.message }}
+            </li>
+          </ul>
+      </div>
+      <div id ="chat-input">
+        <form ref= "chatbox" action="" v-on:submit.prevent @submit="send">
+          <input ref="m" id="m" autocomplete="off" /><button>Send</button>
+        </form>
+      </div>
+    </div>
+
+      <script>
+        var socket = io();
+        var messages = new Vue({
+          el: '#app',
+          data: {
+            messages: [],
+            users: [],
+            username: '',
+            usercolor: ''
+          },
+          created() {
+
+            var cookies = document.cookie;
+            if(cookies === "") {
+              var userData = {
+                username: null,
+                usercolor: null
+              }
+              console.log(userData);
+              socket.emit("username", userData);
+            }
+            else {
+              var usernameCookie = cookies.split('; ').find(row => row.startsWith('username')).split('=')[1];
+              console.log(usernameCookie);
+              cookies = document.cookie;
+              var usercolorCookie = cookies.split('; ').find(row => row.startsWith('usercolor')).split('=')[1];
+              console.log(usercolorCookie);
+              var userData = {
+                username: usernameCookie,
+                usercolor: usercolorCookie
+              }
+              console.log(userData);
+              socket.emit("username", userData);
+            }
+
+            socket.on("messages", (message)=>{
+                this.messages.unshift(message);
+                $("#messagelist").scrollTop($("#messagelist")[0].scrollHeight);
+            });
+
+            socket.on("username", (user)=>
+            {
+              this.username = user.name;
+              this.usercolor = user.color;
+
+              console.log(user.name);
+              console.log(user.color);
+              document.cookie = "username=" + this.username;
+              document.cookie = "usercolor=" + this.usercolor;
+            });
+
+            socket.on("commandfailed", (commandFailed)=> {
+              alert(commandFailed);
+            });
+
+            socket.on("chatroom", (chatroom)=>{
+              this.messages = chatroom.messages;
+              this.users = chatroom.users;
+            });
+
+            socket.on("users", (users)=>
+            {
+              this.users = users;
+            });
+          },
+          computed: {
+              otherUsers: function(){
+                var temp = this.username;
+                return this.users.filter(function(u){
+                  return u.name != temp;
+                });
+              }
+          },
+          methods: {
+            send: function(){
+              var message = {
+                message: this.$refs.m.value,
+                user: {
+                  username: this.username,
+                  color: this.usercolor
+                },
+                time: ''
+              }
+              socket.emit("messages", message);
+              this.$refs.m.value = '';
+            },
+            usernameMatchesMessage: function(user){
+              if(this.username == user) {
+                return "username";
+              }
+              else if(user == "SLATT server"){
+                return "server";
+              }
+              else{
+                return "otheruser";
+              }
+            }
+          }
+
+        });
+      </script>
+  </body>
+</html>
