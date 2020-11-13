@@ -116,6 +116,9 @@ emojifyMessage = function(message){
     emojimessage = emojiReplace(message, ':)', '😁');
     emojimessage = emojiReplace(emojimessage, ':(', '🙁');
     emojimessage = emojiReplace(emojimessage, ':o', '😲');
+    emojimessage = emojiReplace(emojimessage, ':O', '😲');
+    emojimessage = emojiReplace(emojimessage, ':0', '😲');
+    emojimessage = emojiReplace(emojimessage, ':slime:', '🐍');
     return emojimessage;
 }
 
@@ -152,7 +155,7 @@ isValidColor = function(str) {
 handleCommand = function(msg, socket){
     var splitMsg = msg.message.split(' ');
 
-    if(splitMsg.length != 2) {
+    if(splitMsg.length != 2 && splitMsg[0] != '/help') {
         socket.emit("commandfailed", "command format should be /command value");
         return false;
     }
@@ -226,6 +229,14 @@ handleCommand = function(msg, socket){
             Socketio.emit("chatroom", chatroom);
 
             break;
+        case "/help":
+            socket.emit("commandfailed", 
+            "commands are as follows: \n" +
+            "/color RRGGBB to change user name color\n" +
+            "/name username to change user name if it isn't taken\n" +
+            "supported emojis are ':o', ':)', ':(', ':slime:'"
+            );
+            return false;
         default:
             socket.emit("commandfailed", command + " is an invalid command");
             return false;

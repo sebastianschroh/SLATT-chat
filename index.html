@@ -16,9 +16,9 @@
       <div id="users">
           <h1>Online Slimes</h1>
         <ul>
-          <li>{{username}} (You)</li>
+          <li><span v-bind:style="{ color: this.usercolor }">{{username}}</span> (You)</li>
           <li v-for="user in otherUsers">
-            {{ user.name }} 
+            <span v-bind:style="{ color: user.color }">{{ user.name }}</span> 
           </li>
         </ul>
       </div>
