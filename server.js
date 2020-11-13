@@ -120,7 +120,7 @@ emojifyMessage = function(message){
 }
 
 emojiReplace = function(msg, emoticon, emoji){
-    var emojimsg = msg.replace(emoticon, emoji);
+    var emojimsg = msg.split(emoticon).join(emoji);
     return emojimsg;
 }
 
